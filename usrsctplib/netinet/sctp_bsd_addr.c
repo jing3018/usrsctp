@@ -108,6 +108,9 @@ sctp_cleanup_itqueue(void)
 void
 sctp_wakeup_iterator(void)
 {
+	if (SCTP_BASE_VAR(start_threads) == 0) {
+		return;
+	}
 #if defined(SCTP_PROCESS_LEVEL_LOCKS)
 #if defined(__Userspace_os_Windows)
 	WakeAllConditionVariable(&sctp_it_ctl.iterator_wakeup);
@@ -115,7 +118,7 @@ sctp_wakeup_iterator(void)
 	pthread_cond_broadcast(&sctp_it_ctl.iterator_wakeup);
 #endif
 #else
-	wakeup(&sctp_it_ctl.iterator_running);
+	//wakeup(&sctp_it_ctl.iterator_running);
 #endif
 }
 
@@ -145,10 +148,12 @@ sctp_iterator_thread(void *v SCTP_UNUSED)
 #endif
 		       0, "waiting_for_work", 0);
 #else
+#if defined(SCTP_PROCESS_LEVEL_LOCKS)
 #if defined(__Userspace_os_Windows)
 		SleepConditionVariableCS(&sctp_it_ctl.iterator_wakeup, &sctp_it_ctl.ipi_iterator_wq_mtx, INFINITE);
 #else
 		pthread_cond_wait(&sctp_it_ctl.iterator_wakeup, &sctp_it_ctl.ipi_iterator_wq_mtx);
+#endif
 #endif
 #endif
 #if !defined(__FreeBSD__)
@@ -179,14 +184,20 @@ sctp_iterator_thread(void *v SCTP_UNUSED)
 void
 sctp_startup_iterator(void)
 {
-	if (sctp_it_ctl.thread_proc) {
+	if (SCTP_BASE_VAR(sctp_iterator_initialized)) {
 		/* You only get one */
 		return;
 	}
+	SCTP_BASE_VAR(sctp_iterator_initialized) = 1;
+
 	/* Initialize global locks here, thus only once. */
 	SCTP_ITERATOR_LOCK_INIT();
 	SCTP_IPI_ITERATOR_WQ_INIT();
 	TAILQ_INIT(&sctp_it_ctl.iteratorhead);
+
+	if (SCTP_BASE_VAR(start_threads) == 0) {
+		return;
+	}
 #if defined(__FreeBSD__)
 #if __FreeBSD_version <= 701000
 	kthread_create(sctp_iterator_thread,

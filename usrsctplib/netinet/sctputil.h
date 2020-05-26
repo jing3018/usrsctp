@@ -137,6 +137,7 @@ sctp_add_to_readq(struct sctp_inpcb *inp,
     );
 
 void sctp_iterator_worker(void);
+void sctp_iterator_work(struct sctp_iterator *);
 
 uint32_t sctp_get_prev_mtu(uint32_t);
 uint32_t sctp_get_next_mtu(uint32_t);

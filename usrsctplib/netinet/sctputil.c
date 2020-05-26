@@ -1489,13 +1489,15 @@ sctp_expand_mapping_array(struct sctp_association *asoc, uint32_t needed)
 }
 
 
-static void
+void
 sctp_iterator_work(struct sctp_iterator *it)
 {
 #if defined(__FreeBSD__)
 	struct epoch_tracker et;
 #endif
+#if defined(SCTP_PROCESS_LEVEL_LOCKS)
 	struct sctp_inpcb *tinp;
+#endif
 	int iteration_count = 0;
 	int inp_skip = 0;
 	int first_in = 1;
@@ -1540,10 +1542,14 @@ select_a_new_ep:
 			SCTP_INP_RUNLOCK(it->inp);
 			goto done_with_iterator;
 		}
+#if defined(SCTP_PROCESS_LEVEL_LOCKS)
 		tinp = it->inp;
+#endif
 		it->inp = LIST_NEXT(it->inp, sctp_list);
 		it->stcb = NULL;
+#if defined(SCTP_PROCESS_LEVEL_LOCKS)
 		SCTP_INP_RUNLOCK(tinp);
+#endif
 		if (it->inp == NULL) {
 			goto done_with_iterator;
 		}

@@ -300,6 +300,8 @@ struct sctp_base_info {
 	struct sctp_sysctl sctpsysctl;
 	uint8_t first_time;
 	char sctp_pcb_initialized;
+	char sctp_iterator_initialized;
+	char start_threads;
 #if defined(SCTP_PACKET_LOGGING)
 	int packet_log_writers;
 	int packet_log_end;

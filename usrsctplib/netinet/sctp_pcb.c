@@ -6627,6 +6627,12 @@ sctp_pcb_init(void)
 	}
 	SCTP_BASE_VAR(sctp_pcb_initialized) = 1;
 
+#if defined(__Userspace__)
+	SCTP_BASE_VAR(start_threads) = start_threads ? 1 : 0;
+#else
+	SCTP_BASE_VAR(start_threads) = 1;
+#endif
+
 #if defined(SCTP_PROCESS_LEVEL_LOCKS)
 #if !defined(__Userspace_os_Windows)
 	pthread_mutexattr_init(&SCTP_BASE_VAR(mtx_attr));
@@ -8197,9 +8203,13 @@ sctp_initiate_iterator(inp_func inpf,
 		SCTP_FREE(it, SCTP_M_ITER);
 		return (-1);
 	}
+	if (SCTP_BASE_VAR(start_threads) == 0) {
+		sctp_iterator_work(it);
+	} else {
 	TAILQ_INSERT_TAIL(&sctp_it_ctl.iteratorhead, it, sctp_nxt_itr);
 	if (sctp_it_ctl.iterator_running == 0) {
 		sctp_wakeup_iterator();
+	}
 	}
 	SCTP_IPI_ITERATOR_WQ_UNLOCK();
 	/* sa_ignore MEMLEAK {memory is put on the tailq for the iterator} */

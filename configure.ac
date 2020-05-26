@@ -40,7 +40,7 @@ dnl Disable pkg_config support for now
 dnl PKG_PROG_PKG_CONFIG
 dnl PKG_INSTALLDIR
 
-LIBCFLAGS="-DSCTP_PROCESS_LEVEL_LOCKS -DSCTP_SIMPLE_ALLOCATOR -D__Userspace__"
+LIBCFLAGS="-DSCTP_SIMPLE_ALLOCATOR -D__Userspace__"
 APPCFLAGS=""
 
 case $host_os in
